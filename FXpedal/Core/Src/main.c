@@ -2,6 +2,7 @@
 #include "TIM.h"
 #include "DAC.h"
 #include "ADC.h"
+#include "LPF.h"
 
 /* FFT */
 #define ARM_MATH_CM4
@@ -14,6 +15,8 @@
 #define FFT 0x0
 #define IFFT 0x1
 #define GAIN 0x2
+#define CORNER_FREQ 5000
+#define SAMP_FREQ 48000
 
 /* Global Variables */
 extern uint16_t GtrSamp_DigVal;
@@ -39,14 +42,18 @@ int main(void)
   /* Create Arrays and Variables for Circular Buffering */
   float inBuff[BUFFER_SIZE], outBuff[BUFFER_SIZE];
   uint16_t buffIDX = 0x0;
-  arm_rfft_fast_instance_f32 fftHandler;
   /* Clear outBuff to Prevent any Initial Unwanted Feedback */
   for (uint16_t i = 0x0; i < BUFFER_SIZE; i++) {
 	  outBuff[i] = 0.0f;
   }
 
   /* Initialize FFT Handler */
+  arm_rfft_fast_instance_f32 fftHandler;
   arm_rfft_fast_init_f32(&fftHandler, BUFFER_SIZE);
+
+  /* Initialize First-Order Low Pass Filter */
+  LPF_t lpfHandler;
+  LPF_init(*lpfHandler, corner_freq, samp_freq);
 
   /* Initialize TIM2 to Begin Sample Collection */
   TIM_init();
