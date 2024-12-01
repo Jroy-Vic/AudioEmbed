@@ -1,3 +1,2 @@
 ../Core/Src/ADC.c:27:6:ADC_init	5
-../Core/Src/ADC.c:103:6:ADC_collect	1
-../Core/Src/ADC.c:113:6:ADC1_2_IRQHandler	2
+../Core/Src/ADC.c:107:6:ADC_collect	1

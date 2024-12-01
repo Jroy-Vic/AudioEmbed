@@ -29,11 +29,24 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 
-
-/* Macros */
+/* MACROS */
 #define SET 0x1
 #define CLEAR 0x0
+#define BUFFER_SIZE 512
+#define FFT_BUFFER_SIZE 2048
+#define FLOAT_TO_INT16(x) ((int16_t)((x) * 32768.0f))
+#define INT16_TO_FLOAT(x) ((float) (x) / 32768.0f)
+#define FFT 0x0
+#define IFFT 0x1
+#define GAIN 100
+#define CORNER_FREQ 5000.0f
+#define SAMP_FREQ 48000.0f
+#define _AMP(x) ( x / 2 )
 
+
+/* Functions */
+/* Process Stored Data in Buffer */
+void processData(void);
 
 
 /* Private includes ----------------------------------------------------------*/

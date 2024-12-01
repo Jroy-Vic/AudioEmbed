@@ -1,28 +1,34 @@
 #include "main.h"
+#include "DAC1_CH1.h"
 #include "TIM.h"
-#include "DAC.h"
+#include "DMA.h"
 #include "ADC.h"
 #include "LPF.h"
+#include "LED_Debug.h"
 
 /* FFT */
 #define ARM_MATH_CM4
 #include "arm_math.h"
 
-/* MACROS */
-#define BUFFER_SIZE 0x200
-#define FLOAT_TO_UINT16(f) ((uint16_t)((f) * 65535.0f + 0.5f))
-#define UINT16_TO_FLOAT(u) ((float)(u) / 65535.0f)
-#define FFT 0x0
-#define IFFT 0x1
-#define GAIN 0x2
-#define CORNER_FREQ 5000
-#define SAMP_FREQ 48000
-
 /* Global Variables */
-extern uint16_t GtrSamp_DigVal;
-extern uint8_t Input_Flag;
+volatile uint8_t Data_Ready_Flag;
+int16_t inBuff[BUFFER_SIZE], outBuff[BUFFER_SIZE];
+volatile int16_t *inBuffPtr = inBuff, *outBuffPtr = outBuff;
+//extern uint16_t GtrSamp_DigVal;
+//extern uint8_t Input_Flag;
 extern uint8_t Output_Flag;
 
+const size_t SINE_SAMPLES = 32;
+const uint16_t SINE_WAVE[] = {
+  _AMP(2048), _AMP(2447), _AMP(2831), _AMP(3185),
+  _AMP(3495), _AMP(3750), _AMP(3939), _AMP(4056),
+  _AMP(4095), _AMP(4056), _AMP(3939), _AMP(3750),
+  _AMP(3495), _AMP(3185), _AMP(2831), _AMP(2447),
+  _AMP(2048), _AMP(1649), _AMP(1265), _AMP(911),
+  _AMP(601),  _AMP(346),  _AMP(157),  _AMP(40),
+  _AMP(0),    _AMP(40),   _AMP(157),  _AMP(346),
+  _AMP(601),  _AMP(911),  _AMP(1265), _AMP(1649)
+};
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -35,74 +41,129 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+  /* Initialize LED Debugger */
+  LED_Debug_init();
+
+  /* Initialize DMA Transfer */
+  DMA_init(inBuff, outBuff, BUFFER_SIZE);
+
   /* Initialize ADC and DAC for I/O */
   ADC_init();
   DAC_init();
 
-  /* Create Arrays and Variables for Circular Buffering */
-  float inBuff[BUFFER_SIZE], outBuff[BUFFER_SIZE];
+  /* Enable DMA Stream */
+  DMA_enable();
+
+  /* Create Arrays, Pointers, and Variables for Circular Buffering */
   uint16_t buffIDX = 0x0;
   /* Clear outBuff to Prevent any Initial Unwanted Feedback */
   for (uint16_t i = 0x0; i < BUFFER_SIZE; i++) {
-	  outBuff[i] = 0.0f;
+	  inBuff[i] = 0;
+	  outBuff[i] = 0;
   }
 
-  /* Initialize FFT Handler */
-  arm_rfft_fast_instance_f32 fftHandler;
-  arm_rfft_fast_init_f32(&fftHandler, BUFFER_SIZE);
+  float inVal, outVal;
 
-  /* Initialize First-Order Low Pass Filter */
-  LPF_t lpfHandler;
-  LPF_init(*lpfHandler, corner_freq, samp_freq);
+//  /* Initialize FFT Handler */
+//  arm_rfft_fast_instance_f32 fftHandler;
+//  arm_rfft_fast_init_f32(&fftHandler, FFT_BUFFER_SIZE);
+//
+//  /* Initialize First-Order Low Pass Filter */
+//  LPF_t lpfHandler;
+//  LPF_init(*lpfHandler, corner_freq, samp_freq);
+//
+//  /* Initialize TIM2 to Begin Sample Collection */
+//  TIM_init();
 
-  /* Initialize TIM2 to Begin Sample Collection */
-  TIM_init();
-
+  /* Begin ADC Conversion to Continuously Collect Guitar Samples */
+  ADC_collect();
 
   while (1)
   {
-	  /* Check if ARR has been Reached: Output and Collect New Sample */
-	  if (Output_Flag) {
+//	  /* Check if ARR has been Reached: Output and Collect New Sample */
+//	  if (Output_Flag) {
 //		  /* Output Value from Output Buffer to DAC (Converted to uint16_t from float) */
 //		  DAC_Write((uint16_t) (FLOAT_TO_UINT16(outBuff[buffIDX]) * GAIN));
-
-		  /* Begin ADC Conversion to Collect Guitar Sample */
-		  ADC_collect();
-
-		  /* Clear ARR Flag */
-		  Output_Flag = CLEAR;
-	  }
-
-	  /* Process Collected Sample */
-	  if (Input_Flag) {
-//		  /* Store Sample Value from ADC into Input Buffer (Converted to float from uint16_t) */
-//		  inBuff[buffIDX] = (float) (UINT16_TO_FLOAT(GtrSamp_DigVal) * GAIN);
 //
-//		  /* Increment Input Buffer Counter; Apply FFT Once Full */
-//		  buffIDX++;
-//		  if (buffIDX == BUFFER_SIZE) {
-//			  /* Reset Input Buffer Counter */
-//			  buffIDX = 0x0;
+//		  /* Begin ADC Conversion to Collect Guitar Sample */
+//		  ADC_collect();
 //
-//			  /* Apply FFT and Store to Output Buffer */
-//			  arm_rfft_fast_f32(&fftHandler, inBuff, outBuff, FFT);
+//		  /* Clear ARR Flag */
+//		  Output_Flag = CLEAR;
+//	  }
 //
-//			  /* Apply Effects */
-//			  //
+//	  /* Process Collected Sample */
+//	  if (Input_Flag) {
+////		  /* Store Sample Value from ADC into Input Buffer (Converted to float from uint16_t) */
+////		  inBuff[buffIDX] = (float) (UINT16_TO_FLOAT(GtrSamp_DigVal) * GAIN);
+////
+////		  /* Increment Input Buffer Counter; Apply FFT Once Full */
+////		  buffIDX++;
+////		  if (buffIDX == BUFFER_SIZE) {
+////			  /* Reset Input Buffer Counter */
+////			  buffIDX = 0x0;
+////
+////			  /* Apply FFT and Store to Output Buffer */
+////			  arm_rfft_fast_f32(&fftHandler, inBuff, outBuff, FFT);
+////
+////			  /* Apply Effects */
+////			  //
+////
+////			  /* Apply iFFT and Replace Output Buffer */
+////			  arm_rfft_fast_f32(&fftHandler, outBuff, outBuff, IFFT);
+////		  }
 //
-//			  /* Apply iFFT and Replace Output Buffer */
-//			  arm_rfft_fast_f32(&fftHandler, outBuff, outBuff, IFFT);
+//		  if (buffIDX < BUFFER_SIZE) {
+//			  	inVal = INT16_TO_FLOAT(*(inBuffPtr++));
+//
+//				/* Apply Signal Modification */
+//				outVal = (inVal * GAIN);
+//
+//				/* Convert Output to int16_t and Send to DAC */
+//				*(outBuffPtr++) = (int16_t) FLOAT_TO_INT16(outVal);
+//				DAC1->DHR12R1 = (int16_t) FLOAT_TO_INT16(outVal);
+//		  } else {
+//			  buffIDX = 0;
+//			  inBuffPtr = &inBuff[0];
+//			  outBuffPtr = &outBuff[0];
 //		  }
+////		  DAC_Write((GtrSamp_DigVal * GAIN));
+//		  /* Clear ADC Flag */
+//		  Input_Flag = CLEAR;
+//	  }
 
-		  DAC_Write((GtrSamp_DigVal * GAIN));
-		  /* Clear ADC Flag */
-		  Input_Flag = CLEAR;
+
+	  if (Data_Ready_Flag) {
+		  /* Process Ready Data While DMA Transfer Continues */
+		  processData();
+
+		  /* Debug: Toggle LED */
+		  LED_Debug_1_toggle();
+
+		  /* Clear Flag */
+		  Data_Ready_Flag = CLEAR;
 	  }
   }
-
 }
 
 
+/* Functions */
+/* Process Stored Data in Buffer */
+void processData() {
+	float inVal, outVal;
+
+	/* Process Half of the Buffer */
+	for (uint16_t i = 0x0; i < (BUFFER_SIZE / 2); i++) {
+		/* Take Input and Convert to Float */
+		inVal = INT16_TO_FLOAT(*(inBuffPtr++));
+
+		/* Apply Signal Modification */
+		outVal = (inVal * GAIN);
+
+		/* Convert Output to int16_t and Send to DAC */
+		*(outBuffPtr++) = (int16_t) FLOAT_TO_INT16(outVal);
+	}
+}
 
 
 

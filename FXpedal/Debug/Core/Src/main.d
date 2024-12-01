@@ -23,8 +23,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ramfunc.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
- ../Core/Inc/TIM.h ../Core/Inc/main.h ../Core/Inc/DAC.h ../Core/Inc/ADC.h \
- ../Core/Inc/arm_math.h
+ ../Core/Inc/DAC1_CH1.h ../Core/Inc/main.h ../Core/Inc/TIM.h \
+ ../Core/Inc/DMA.h ../Core/Inc/ADC.h ../Core/Inc/LPF.h \
+ ../Core/Inc/LED_Debug.h ../Core/Inc/arm_math.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -50,8 +51,11 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ramfunc.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h:
-../Core/Inc/TIM.h:
+../Core/Inc/DAC1_CH1.h:
 ../Core/Inc/main.h:
-../Core/Inc/DAC.h:
+../Core/Inc/TIM.h:
+../Core/Inc/DMA.h:
 ../Core/Inc/ADC.h:
+../Core/Inc/LPF.h:
+../Core/Inc/LED_Debug.h:
 ../Core/Inc/arm_math.h:

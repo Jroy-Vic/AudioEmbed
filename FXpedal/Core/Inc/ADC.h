@@ -11,7 +11,7 @@
 #include "main.h"
 #define TWENTYU_DELAY 80
 #define ADC_NVIC (((uint32_t) ADC1_IRQn) >> 5UL)
-#define ADC_NVIC_PRIORITY 0x0
+#define ADC_NVIC_PRIORITY 0x2
 
 /* Global Variables */
 extern uint16_t GtrSamp_DigVal;

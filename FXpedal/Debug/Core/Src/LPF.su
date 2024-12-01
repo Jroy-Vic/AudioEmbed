@@ -1,0 +1,3 @@
+../Core/Src/LPF.c:15:6:LPF_init	24	static
+../Core/Src/LPF.c:31:6:LPF_setCorner	32	static
+../Core/Src/LPF.c:51:7:LPF_apply	16	static
