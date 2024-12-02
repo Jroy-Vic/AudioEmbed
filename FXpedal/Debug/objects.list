@@ -2,6 +2,7 @@
 "./Core/Src/DAC.o"
 "./Core/Src/DAC1_CH1.o"
 "./Core/Src/DMA.o"
+"./Core/Src/DelayFilter.o"
 "./Core/Src/LED_Debug.o"
 "./Core/Src/LPF.o"
 "./Core/Src/TIM.o"

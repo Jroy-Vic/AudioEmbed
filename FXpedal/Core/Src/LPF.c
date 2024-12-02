@@ -29,7 +29,7 @@ void LPF_init(LPF_t *filter, float corner_freq, float samp_freq) {
  *
  * */
 void LPF_setCorner(LPF_t *filter, float corner_freq) {
-	/* Restrict Corner Frequency to be within 0 - (samp_freq / 2) */
+	/* Restrict Corner Frequency to be within 0 - (samp_freq / 2) [Nyquist Law] */
 	if (corner_freq > (filter->samp_freq * 0.5f)) {
 		corner_freq = (filter->samp_freq * 0.5f);
 	} else if (corner_freq < 0.0f) {

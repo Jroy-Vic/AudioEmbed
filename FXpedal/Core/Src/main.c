@@ -4,6 +4,7 @@
 #include "DMA.h"
 #include "ADC.h"
 #include "LPF.h"
+#include "DelayFilter.h"
 #include "LED_Debug.h"
 
 /* FFT */
@@ -54,23 +55,23 @@ int main(void)
   /* Enable DMA Stream */
   DMA_enable();
 
-  /* Create Arrays, Pointers, and Variables for Circular Buffering */
-  uint16_t buffIDX = 0x0;
   /* Clear outBuff to Prevent any Initial Unwanted Feedback */
   for (uint16_t i = 0x0; i < BUFFER_SIZE; i++) {
 	  inBuff[i] = 0;
 	  outBuff[i] = 0;
   }
 
-  float inVal, outVal;
-
 //  /* Initialize FFT Handler */
 //  arm_rfft_fast_instance_f32 fftHandler;
 //  arm_rfft_fast_init_f32(&fftHandler, FFT_BUFFER_SIZE);
 //
-//  /* Initialize First-Order Low Pass Filter */
-//  LPF_t lpfHandler;
-//  LPF_init(*lpfHandler, corner_freq, samp_freq);
+  /* Initialize First-Order Low Pass Filter */
+  LPF_t *lpfHandler;
+  LPF_init(lpfHandler, CORNER_FREQ, SAMP_FREQ);
+
+  /* Initialize Delay Effect Filter */
+  DelayFilter_t *dftHandler;
+  Delay_Filter_init(dftHandler, DELAY_SIZE, DELAY_CUTOFF);
 //
 //  /* Initialize TIM2 to Begin Sample Collection */
 //  TIM_init();
@@ -135,7 +136,7 @@ int main(void)
 
 	  if (Data_Ready_Flag) {
 		  /* Process Ready Data While DMA Transfer Continues */
-		  processData();
+		  processData(dftHandler);
 
 		  /* Debug: Toggle LED */
 		  LED_Debug_1_toggle();
@@ -149,7 +150,7 @@ int main(void)
 
 /* Functions */
 /* Process Stored Data in Buffer */
-void processData() {
+void processData(DelayFilter_t *dft) {
 	float inVal, outVal;
 
 	/* Process Half of the Buffer */
@@ -158,7 +159,10 @@ void processData() {
 		inVal = INT16_TO_FLOAT(*(inBuffPtr++));
 
 		/* Apply Signal Modification */
-		outVal = (inVal * GAIN);
+//		float modVal = LPF_apply(lpf, inVal);
+//		outVal = (modVal * GAIN);
+		float outVal = Delay_Filter_apply(dft, inVal);
+
 
 		/* Convert Output to int16_t and Send to DAC */
 		*(outBuffPtr++) = (int16_t) FLOAT_TO_INT16(outVal);

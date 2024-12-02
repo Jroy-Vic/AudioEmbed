@@ -1,4 +1,4 @@
-Core/Src/ADC.o: ../Core/Src/ADC.c ../Core/Inc/main.h \
+Core/Src/DelayFilter.o: ../Core/Src/DelayFilter.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -24,7 +24,7 @@ Core/Src/ADC.o: ../Core/Src/ADC.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
  ../Core/Inc/LPF.h ../Core/Inc/main.h ../Core/Inc/DelayFilter.h \
- ../Core/Inc/ADC.h
+ ../Core/Inc/DelayFilter.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -53,4 +53,4 @@ Core/Src/ADC.o: ../Core/Src/ADC.c ../Core/Inc/main.h \
 ../Core/Inc/LPF.h:
 ../Core/Inc/main.h:
 ../Core/Inc/DelayFilter.h:
-../Core/Inc/ADC.h:
+../Core/Inc/DelayFilter.h:
