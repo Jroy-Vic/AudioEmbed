@@ -66,12 +66,13 @@ int main(void)
 //  arm_rfft_fast_init_f32(&fftHandler, FFT_BUFFER_SIZE);
 //
   /* Initialize First-Order Low Pass Filter */
-  LPF_t *lpfHandler;
-  LPF_init(lpfHandler, CORNER_FREQ, SAMP_FREQ);
+  LPF_t lpfHandler;
+  LPF_init(&lpfHandler, CORNER_FREQ, SAMP_FREQ);
 
   /* Initialize Delay Effect Filter */
-  DelayFilter_t *dftHandler;
-  Delay_Filter_init(dftHandler, DELAY_SIZE, DELAY_CUTOFF);
+  //DelayFilter_t *dftHandler = (DelayFilter_t*) malloc(sizeof(DelayFilter_t));
+  DelayFilter_t dftHandler;
+  Delay_Filter_init(&dftHandler, DELAY_SIZE, DELAY_CUTOFF);
 //
 //  /* Initialize TIM2 to Begin Sample Collection */
 //  TIM_init();
@@ -136,7 +137,7 @@ int main(void)
 
 	  if (Data_Ready_Flag) {
 		  /* Process Ready Data While DMA Transfer Continues */
-		  processData(dftHandler);
+		  processData(&lpfHandler, &dftHandler);
 
 		  /* Debug: Toggle LED */
 		  LED_Debug_1_toggle();
@@ -150,7 +151,7 @@ int main(void)
 
 /* Functions */
 /* Process Stored Data in Buffer */
-void processData(DelayFilter_t *dft) {
+void processData(LPF_t *lpf, DelayFilter_t *dft) {
 	float inVal, outVal;
 
 	/* Process Half of the Buffer */
@@ -159,7 +160,7 @@ void processData(DelayFilter_t *dft) {
 		inVal = INT16_TO_FLOAT(*(inBuffPtr++));
 
 		/* Apply Signal Modification */
-//		float modVal = LPF_apply(lpf, inVal);
+		//float modVal = LPF_apply(lpf, inVal);
 //		outVal = (modVal * GAIN);
 		float outVal = Delay_Filter_apply(dft, inVal);
 

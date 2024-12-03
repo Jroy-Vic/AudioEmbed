@@ -34,7 +34,7 @@ extern "C" {
 /* MACROS */
 #define SET 0x1
 #define CLEAR 0x0
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 256
 #define FFT_BUFFER_SIZE 2048
 #define FLOAT_TO_INT16(x) ((int16_t)((x) * 32768.0f))
 #define INT16_TO_FLOAT(x) ((float) (x) / 32768.0f)
@@ -43,14 +43,14 @@ extern "C" {
 #define GAIN 100
 #define CORNER_FREQ 5000.0f
 #define SAMP_FREQ 48000.0f
-#define DELAY_SIZE 10
-#define DELAY_CUTOFF (10.0f)
+#define DELAY_SIZE 500
+#define DELAY_CUTOFF (0.1f)
 #define _AMP(x) ( x / 2 )
 
 
 /* Functions */
 /* Process Stored Data in Buffer */
-void processData(DelayFilter_t *dft);
+void processData(LPF_t *lpf, DelayFilter_t *dft);
 
 
 /* Private includes ----------------------------------------------------------*/

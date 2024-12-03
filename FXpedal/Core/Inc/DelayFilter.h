@@ -11,11 +11,12 @@
 #include "main.h"
 
 /* MACROS */
-#define PEAK_ATTENUATION (100.0f)
+#define PEAK_ATTENUATION (1.0f)
 
 
 /* Create Delay Filter */
 typedef struct {
+
 	/* Memory Buffer Pointer */
 	float *memBuffPtr;
 
@@ -24,6 +25,7 @@ typedef struct {
 
 	/* Memory Attenuation Coefficient */
 	float attenuation;
+
 } DelayFilter_t;
 
 

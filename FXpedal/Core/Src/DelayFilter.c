@@ -20,12 +20,11 @@ void Delay_Filter_init(DelayFilter_t *dft, uint16_t size, float cutoff) {
 
 	/* Dynamically Create Empty Memory Buffer */
 	float *memBuff = (float*) calloc(size, sizeof(float));
+	dft->memBuffPtr = memBuff;
 
 	/* Instantiate Delay Filter Object */
-	dft->memBuffPtr = memBuff;
 	dft->memBuffSize = size;
-	dft->attenuation = 0.1f;
-//	dft->attenuation = (((PEAK_ATTENUATION - cutoff) / (size - 1)) / 100);
+	dft->attenuation = ((PEAK_ATTENUATION - cutoff) / ((float) size - 1.0f));
 }
 
 /* Accumulate Data in Memory */
