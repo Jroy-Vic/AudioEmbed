@@ -41,5 +41,7 @@ float Delay_Filter_output(DelayFilter_t *dft);
 /* Apply Delay Effect to Signal */
 float Delay_Filter_apply(DelayFilter_t *dft, float data);
 
+/* Modify Delay Duration and Effect Strength */
+void Delay_Filter_update(DelayFilter_t *dft, uint16_t newSize, float newCutOff);
 
 #endif /* INC_DELAYFILTER_H_ */

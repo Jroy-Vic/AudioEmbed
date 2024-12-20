@@ -34,13 +34,13 @@ extern "C" {
 /* MACROS */
 #define SET 0x1
 #define CLEAR 0x0
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 6
 #define FFT_BUFFER_SIZE 2048
 #define FLOAT_TO_INT16(x) ((int16_t)((x) * 32768.0f))
 #define INT16_TO_FLOAT(x) ((float) (x) / 32768.0f)
 #define FFT 0x0
 #define IFFT 0x1
-#define GAIN 100
+#define GAIN 1.0f
 #define CORNER_FREQ 5000.0f
 #define SAMP_FREQ 48000.0f
 #define DELAY_SIZE 500

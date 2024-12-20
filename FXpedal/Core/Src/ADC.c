@@ -37,7 +37,7 @@ void ADC_init() {
 	/* Connect Analog Switch to the ADC Input (1) */
 	GPIOC->ASCR |= GPIO_ASCR_ASC0;
 
-	/* Enable 24MHz ADC Clock and set to Synchronous Mode */
+	/* Enable 48MHz ADC Clock and set to Synchronous Mode */
 	RCC->AHB2ENR |= RCC_AHB2ENR_ADCEN;
 	ADC123_COMMON->CCR |= ADC_CCR_CKMODE;
 
@@ -71,21 +71,16 @@ void ADC_init() {
 	ADC1->CFGR &= ~ADC_CFGR_RES;
 	/* Set Channel 1 as a Single Regular Sequence (1) */
 	ADC1->SQR1 |= ADC_SQR1_SQ1_0;
-	/* Set Sample Time to 6.5 Clocks to Channel 1 (001) */
-//	ADC1->SMPR1 |= ADC_SMPR1_SMP1;
-//	ADC1->SMPR1 &= ~ADC_SMPR1_SMP1_0;
-	ADC1->SMPR1 |= ADC_SMPR1_SMP1;
-	/* Allow Conversions to be Set by Software (00) */
-	ADC1->CFGR &= ~ADC_CFGR_EXTEN;
+	/* Set Sample Time to 92.5 Clocks to Channel 1 (101) */
+	ADC1->SMPR1 &= ~ADC_SMPR1_SMP1;
+	ADC1->SMPR1 |= (0b101 << ADC_SMPR1_SMP1_Pos);
 
-//	/* Enable Interrupts at End of Conversions (EOC) */
-//	ADC1->IER |= ADC_IER_EOCIE;
-//	/* Clear EOC Flag */
-//	ADC1->ISR |= ADC_ISR_EOC;
-//	/* Enable Global Interrupt in NVIC with Second-Highest Priority */
-//	NVIC->IP[ADC1_IRQn] = ADC_NVIC_PRIORITY;
-//	NVIC->ISER[ADC_NVIC] |= (0x1 << (ADC1_IRQn & 0x1F));
-//	__enable_irq();
+	/* Configure ADC1 to Receive Trigger from TIM6_TRGO (1101) */
+	ADC1->CFGR &= ~ADC_CFGR_EXTSEL;
+	ADC1->CFGR |= (0b1101 << ADC_CFGR_EXTSEL_Pos);
+	/* Allow Conversions to be Set by Rising Edge of TIM6_TRGO (01) */
+	ADC1->CFGR &= ~ADC_CFGR_EXTEN;
+	ADC1->CFGR |= ADC_CFGR_EXTEN_0;
 
 	/* Clear ADC Ready Flag (Write 1 to Bit), Then Enable ADC */
 	ADC1->ISR |= ADC_ISR_ADRDY;
@@ -108,22 +103,4 @@ void ADC_collect(void) {
 	/* Begin ADC Conversion */
 	ADC1->CR |= ADC_CR_ADSTART;
 }
-
-
-/* ADC Interrupt Handler */
-/* Save Digital Conversion to a Global Variable
- * Set a Global Flag
- */
-//void ADC1_IRQHandler() {
-//	/* If Conversion has Ended, EOC Flag is Set */
-//	/* Save Digital Value to Global Variable */
-//	if ((GtrSamp_DigVal = ADC1->DR) < 20) {
-//		GtrSamp_DigVal = 0;
-//	}
-//	GtrSamp_DigVal = ADC1->DR;
-	/* Reading from ADC1_DR Clears EOC Flag */
-
-	/* Set Global Flag */
-//	Input_Flag = SET;
-//}
 

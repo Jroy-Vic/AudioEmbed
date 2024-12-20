@@ -1,0 +1,3 @@
+../Core/Src/Keypad.c:14:6:Keypad_init	4	static
+../Core/Src/Keypad.c:40:6:Keypad_reset	4	static
+../Core/Src/Keypad.c:48:8:Keypad_read	4	static

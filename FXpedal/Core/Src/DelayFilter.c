@@ -63,3 +63,14 @@ float Delay_Filter_apply(DelayFilter_t *dft, float data) {
 	/* Output Data */
 	return Delay_Filter_output(dft);
 }
+
+/* Modify Delay Duration and Effect Strength */
+void Delay_Filter_update(DelayFilter_t *dft, uint16_t newSize, float newCutOff) {
+
+	/* Resize the Memory Buffer */
+	dft->memBuffPtr = (float*) realloc(dft->memBuffPtr, newSize * sizeof(float));
+
+	/* Update Attenuation Coefficient */
+	dft->memBuffSize = newSize;
+	dft->attenuation = ((PEAK_ATTENUATION - newCutOff) / ((float) newSize - 1.0f));
+}

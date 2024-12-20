@@ -48,7 +48,8 @@ int main(void)
   /* Initialize DMA Transfer */
   DMA_init(inBuff, outBuff, BUFFER_SIZE);
 
-  /* Initialize ADC and DAC for I/O */
+  /* Initialize TIM6_TRGO, ADC, and DAC for I/O */
+  TIM_init();
   ADC_init();
   DAC_init();
 
@@ -152,17 +153,20 @@ int main(void)
 /* Functions */
 /* Process Stored Data in Buffer */
 void processData(LPF_t *lpf, DelayFilter_t *dft) {
-	float inVal, outVal;
+	static float inVal, outVal;
 
 	/* Process Half of the Buffer */
 	for (uint16_t i = 0x0; i < (BUFFER_SIZE / 2); i++) {
 		/* Take Input and Convert to Float */
 		inVal = INT16_TO_FLOAT(*(inBuffPtr++));
+		if (inVal > 1.0f) {
+			inVal -= 2.0f;
+		}
 
 		/* Apply Signal Modification */
 		//float modVal = LPF_apply(lpf, inVal);
-//		outVal = (modVal * GAIN);
-		float outVal = Delay_Filter_apply(dft, inVal);
+		outVal = (inVal * GAIN);
+//		float outVal = Delay_Filter_apply(dft, inVal);
 
 
 		/* Convert Output to int16_t and Send to DAC */

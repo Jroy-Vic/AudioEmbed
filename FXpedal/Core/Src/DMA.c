@@ -128,8 +128,6 @@ void DMA1_Channel1_IRQHandler(void) {
 		/* Clear Interrupt Flag */
 		DMA1->IFCR |= DMA_IFCR_CTCIF1;
 	}
-
-
 }
 
 /* Interrupt Handler for DMA2 Channel 4 (Output Data) */

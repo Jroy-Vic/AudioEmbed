@@ -1,2 +1,2 @@
 ../Core/Src/ADC.c:27:6:ADC_init	16	static
-../Core/Src/ADC.c:107:6:ADC_collect	4	static
+../Core/Src/ADC.c:102:6:ADC_collect	4	static

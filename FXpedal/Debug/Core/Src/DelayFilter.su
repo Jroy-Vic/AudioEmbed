@@ -2,3 +2,4 @@
 ../Core/Src/DelayFilter.c:31:6:Delay_Filter_store	24	static
 ../Core/Src/DelayFilter.c:43:7:Delay_Filter_output	32	static
 ../Core/Src/DelayFilter.c:58:7:Delay_Filter_apply	16	static
+../Core/Src/DelayFilter.c:68:6:Delay_Filter_update	24	static
