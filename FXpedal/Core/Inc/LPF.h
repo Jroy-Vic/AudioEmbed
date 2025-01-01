@@ -10,6 +10,8 @@
 
 #include "main.h"
 
+#define LPF_CORNER_FREQ 100000.0f
+
 /* Define First-Order Low Pass Filter Struct */
 typedef struct {
 	/* Filtered Output */

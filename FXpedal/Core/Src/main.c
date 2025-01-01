@@ -4,7 +4,10 @@
 #include "DMA.h"
 #include "ADC.h"
 #include "LPF.h"
+#include "HPF.h"
 #include "DelayFilter.h"
+#include "NoiseGate.h"
+#include "Delay.h"
 #include "LED_Debug.h"
 
 /* FFT */
@@ -68,12 +71,23 @@ int main(void)
 //
   /* Initialize First-Order Low Pass Filter */
   LPF_t lpfHandler;
-  LPF_init(&lpfHandler, CORNER_FREQ, SAMP_FREQ);
+  LPF_init(&lpfHandler, LPF_CORNER_FREQ, SAMP_FREQ);
+
+  /* Initialize First-Order High Pass Filter */
+  HPF_t hpfHandler;
+  HPF_init(&hpfHandler, HPF_CORNER_FREQ, SAMP_FREQ);
 
   /* Initialize Delay Effect Filter */
-  //DelayFilter_t *dftHandler = (DelayFilter_t*) malloc(sizeof(DelayFilter_t));
   DelayFilter_t dftHandler;
   Delay_Filter_init(&dftHandler, DELAY_SIZE, DELAY_CUTOFF);
+
+  /* Initialize Noise Gate Filter */
+  NoiseGateFilt_t ngfHandler;
+  NoiseGate_init(&ngfHandler, NGF_THRESHOLD, NGF_ATTACKTIME, NGF_RELEASETIME, NGF_HOLDTIME, SAMP_FREQ);
+
+  /* Initialize Delay Filter */
+  Delay_t dfHandler;
+  Delay_init(&dfHandler, DELAY_TIME_MS, DELAY_MIX, DELAY_FEEDBACK, SAMP_FREQ);
 //
 //  /* Initialize TIM2 to Begin Sample Collection */
 //  TIM_init();
@@ -138,7 +152,7 @@ int main(void)
 
 	  if (Data_Ready_Flag) {
 		  /* Process Ready Data While DMA Transfer Continues */
-		  processData(&lpfHandler, &dftHandler);
+		  processData(&lpfHandler, &hpfHandler, &dftHandler, &ngfHandler, &dfHandler);
 
 		  /* Debug: Toggle LED */
 		  LED_Debug_1_toggle();
@@ -152,7 +166,8 @@ int main(void)
 
 /* Functions */
 /* Process Stored Data in Buffer */
-void processData(LPF_t *lpf, DelayFilter_t *dft) {
+void processData(LPF_t *lpf, HPF_t *hpf, DelayFilter_t *dft, NoiseGateFilt_t *ngf,
+				Delay_t *df) {
 	static float inVal, outVal;
 
 	/* Process Half of the Buffer */
@@ -164,9 +179,13 @@ void processData(LPF_t *lpf, DelayFilter_t *dft) {
 		}
 
 		/* Apply Signal Modification */
-		//float modVal = LPF_apply(lpf, inVal);
+//		inVal = HPF_apply(hpf, inVal);
+//		inVal = LPF_apply(lpf, inVal);
+		inVal = Delay_update(df, inVal);
+//		inVal = NoiseGate_update(ngf, inVal);
+//		inVal = Delay_Filter_apply(dft, inVal);
 		outVal = (inVal * GAIN);
-//		float outVal = Delay_Filter_apply(dft, inVal);
+
 
 
 		/* Convert Output to int16_t and Send to DAC */

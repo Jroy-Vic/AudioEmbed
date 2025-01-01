@@ -45,9 +45,8 @@ float Delay_Filter_output(DelayFilter_t *dft) {
 	/* Accumulate Attenuated Signal from Memory Buffer */
 	float *tempPtr = dft->memBuffPtr;
 	float output = 0x0;
-	for (uint16_t i = 0x0; i < dft->memBuffSize; i++) {
-		output += ((*tempPtr++) * (PEAK_ATTENUATION -
-				  (i * dft->attenuation)));
+	for (uint16_t i = 0x0; i < 0x2; i++) {
+		output += ((*tempPtr++));
 	}
 
 	/* Output Delayed Signal */

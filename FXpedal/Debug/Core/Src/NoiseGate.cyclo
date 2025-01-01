@@ -1,0 +1,4 @@
+../Core/Src/NoiseGate.c:14:6:NoiseGate_init	1
+../Core/Src/NoiseGate.c:38:7:NoiseGate_update	5
+../Core/Src/NoiseGate.c:87:6:NoiseGate_setThreshold	3
+../Core/Src/NoiseGate.c:103:6:NoiseGate_setAttackReleaseTime	1

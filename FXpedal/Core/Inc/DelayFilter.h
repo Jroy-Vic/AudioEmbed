@@ -12,6 +12,8 @@
 
 /* MACROS */
 #define PEAK_ATTENUATION (1.0f)
+#define DELAY_SIZE 500
+#define DELAY_CUTOFF (0.1f)
 
 
 /* Create Delay Filter */

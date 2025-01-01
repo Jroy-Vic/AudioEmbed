@@ -1,0 +1,3 @@
+../Core/Src/HPF.c:14:6:HPF_init	24	static
+../Core/Src/HPF.c:31:6:HPF_setCorner	32	static
+../Core/Src/HPF.c:49:7:HPF_apply	16	static

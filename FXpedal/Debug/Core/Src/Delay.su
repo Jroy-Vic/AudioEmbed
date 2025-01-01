@@ -1,0 +1,3 @@
+../Core/Src/Delay.c:14:6:Delay_init	40	static
+../Core/Src/Delay.c:36:7:Delay_update	24	static
+../Core/Src/Delay.c:70:6:Delay_setLength	24	static

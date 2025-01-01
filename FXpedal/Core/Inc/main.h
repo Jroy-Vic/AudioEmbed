@@ -29,7 +29,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 #include "LPF.h"
+#include "HPF.h"
 #include "DelayFilter.h"
+#include "NoiseGate.h"
+#include "Delay.h"
 
 /* MACROS */
 #define SET 0x1
@@ -41,16 +44,14 @@ extern "C" {
 #define FFT 0x0
 #define IFFT 0x1
 #define GAIN 1.0f
-#define CORNER_FREQ 5000.0f
 #define SAMP_FREQ 48000.0f
-#define DELAY_SIZE 500
-#define DELAY_CUTOFF (0.1f)
 #define _AMP(x) ( x / 2 )
 
 
 /* Functions */
 /* Process Stored Data in Buffer */
-void processData(LPF_t *lpf, DelayFilter_t *dft);
+void processData(LPF_t *lpf, HPF_t *hpf, DelayFilter_t *dft, NoiseGateFilt_t *ngf,
+				 Delay_t *df);
 
 
 /* Private includes ----------------------------------------------------------*/
