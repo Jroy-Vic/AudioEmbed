@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"name": "ESP32_GuitarCable",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"functional": "cpp",
+			"algorithm": "cpp"
+		}
+	}
+}
