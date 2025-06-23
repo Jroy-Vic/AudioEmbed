@@ -19,7 +19,7 @@ void setupI2S(const uint8_t Transmitter_pins[]) {
         .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
         .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 4,
+        .dma_buf_count = 10,
         .dma_buf_len = I2S_DMA_BUFF_LEN,
         .use_apll = false,
         .tx_desc_auto_clear = false,
@@ -33,7 +33,11 @@ void setupI2S(const uint8_t Transmitter_pins[]) {
     // Configure ADC Settings
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_DB_12);     // 3.3V Max
+    i2s_set_clk(I2S_NUM_0, I2S_SAMPLE_RATE, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_MONO);
     i2s_adc_enable(I2S_NUM_0);
+
+    // Allow Clock to Stabilize
+    delay(50);
 
     Serial.println("I2S Communication Initialized.");
 }

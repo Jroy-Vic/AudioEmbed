@@ -10,6 +10,10 @@ extern "C" {
 /* Functions */
 // Initialize ESP-NOW Communication between MCUs
 void setupESPNow() {
+    // Setup LED Alert to Confirm Connection
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
+
     // Initialize ESP NOW Protocol for Transmitter
     WiFi.mode(WIFI_STA);
     esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_LR);   // Enable Long-Range Mode
@@ -18,35 +22,6 @@ void setupESPNow() {
         Serial.println("ESP-NOW init failed!");
         return;
     }
-    
-    // esp_now_register_send_cb([](const uint8_t *mac_addr, esp_now_send_status_t status) {
-    //     static uint32_t success = 0;
-    //     static uint32_t fail = 0;
-    //     static uint32_t total = 0;
-    //     static uint32_t last_print_time = 0;
-      
-    //     total++;
-      
-    //     if (status == ESP_NOW_SEND_SUCCESS) {
-    //       success++;
-    //     } else {
-    //       fail++;
-    //     }
-      
-    //     uint32_t now = millis();
-    //     if (now - last_print_time >= 1000) {
-    //       float success_rate = total > 0 ? (100.0f * success / total) : 0.0f;
-    //       Serial.printf("[TX Stats] Packets/sec: %lu | Success: %lu | Fail: %lu | Success Rate: %.1f%%\n",
-    //                     total, success, fail, success_rate);
-      
-    //       // Reset counters for next interval
-    //       success = 0;
-    //       fail = 0;
-    //       total = 0;
-    //       last_print_time = now;
-    //     }
-    //   });
-
       
     // Connect Master MCU to Peer
     esp_now_peer_info_t peerInfo = {};
@@ -58,6 +33,7 @@ void setupESPNow() {
 
     // Check if Connection was Successful
     if (espn_result == ESP_OK) {
+        digitalWrite(LED_PIN, HIGH);
         Serial.println("Peer added successfully.");
     } else if (espn_result == ESP_ERR_ESPNOW_EXIST) {
         Serial.println("Peer already exists.");

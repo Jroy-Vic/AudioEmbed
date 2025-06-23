@@ -4,7 +4,7 @@
 
 
 /* External Variables */
-uint8_t Task_buff[PREBUFF_LEN] = {0};
+uint16_t Task_buff[PREBUFF_LEN] = {0};
 volatile uint16_t head = 0;
 volatile uint16_t tail = 0;
 
@@ -23,7 +23,7 @@ uint8_t isEmpty() {
 
 
 // Push Sample into FIFO Queue
-uint8_t push_Sample(uint8_t sample) {
+uint8_t push_Sample(uint16_t sample) {
     if (isFull()) {
         return 0;
     }
@@ -35,11 +35,12 @@ uint8_t push_Sample(uint8_t sample) {
 
 
 // Pop Sample out of FIFO Queue
-uint8_t pop_Sample(uint8_t *sample) {
+uint8_t pop_Sample(uint16_t *sample) {
     if (isEmpty()) {
         return 0;
     }
 
+    // Save Sample to Output
     *sample = Task_buff[tail];
     tail = (tail + 1) % PREBUFF_LEN;
     return 1;

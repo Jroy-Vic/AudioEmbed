@@ -4,6 +4,8 @@
 #include "ESP_COMM.h"
 #include "LPF.h"
 #include "FIFO.h"
+#include "MCP4921.h"
+#include "esp_task_wdt.h"
 #include <Ticker.h>
 
 extern "C" {
@@ -12,107 +14,87 @@ extern "C" {
 
 
 /* Global Variables */
+// DAC Timer Handlers
 hw_timer_t *DAC_timer = NULL;
-volatile uint8_t Prebuff_flag = 0x0;        // Low on Reset
 volatile uint8_t DAC_overrun_flag = 0x0;    // Low on Reset
-static uint8_t last_sample = 0;
+volatile uint8_t DAC_underrun_flag = 0x0;   // Low on Reset
+static uint8_t DAC_timer_flag = 0x0;        // Low on Reset
+// Interpolation Handlers
+static uint16_t prev_output = 0;
 static uint8_t interp_step = 0;
 static uint8_t interp_delta = 0;
 
 /* External Variables */
-const uint8_t Receiver_pins[] = RECEIVER_PINS;
 
 
 /* Functions */
 // Handle Incoming Signal Data
-void onReceive(const uint8_t *mac, const uint8_t *incomingData, int len) {
-    // Ensure Samples are Valid and Even in Number
-    if (len % 2 != 0)
-        return;
+void onReceive(const uint8_t *mac, const uint8_t *incomingData, int byte_len) {
+    static uint32_t packet_cnt = 0;
 
-    // Convert 16-Bit Data Samples to 8-Bit Output Data (Account for I2S Shift)
-    for (size_t i = 0; i < len; i += 2) {
+    // Ensure Samples are Valid and Even in Number
+    if (byte_len % 2 != 0) return;
+
+    // Convert 16-Bit Data Samples to 12-Bit Output Data (Account for I2S Shift)
+    for (size_t i = 0; i < (byte_len - 1); i += 2) {
         uint16_t output_sample = (incomingData[(i + 1)] << 0x8) | incomingData[i];     // Reconstruct 16-Bit Left-Aligned Frame (Little-Endian)
         output_sample &= 0x0FFF;                                                       // Remove I2S Shift (Upper Four Bits)   
+        printf("Packet #%d: DAC[%d] = 0x%04X\n", packet_cnt, (i / 2), output_sample);
 
         // Smoothen Noise using Exponential Moving Average Filter
-        static uint16_t prev_output = 0;
         output_sample = (7 * prev_output + output_sample) >> 3;                         // Weight: 87.5% old, 12.5% new
         if (output_sample <= 1) {
             output_sample = 0;
         }
+        interp_delta = output_sample - prev_output;
         prev_output = output_sample;
 
         // Apply Low-Pass Filter to Remove Harmonics
-        uint8_t filtered_sample = apply_fir_filter((uint8_t)output_sample);
+        static uint16_t filtered_sample = apply_fir_filter(output_sample);
 
-        // Store Sample into FIFO Queue
-        push_Sample(filtered_sample);
+        // Store Sample into FIFO Queue if Space is Available
+        if (!DAC_overrun_flag) 
+            push_Sample(filtered_sample);
 
         // Enable DAC Timer once Sufficient Pre-Buffer Size has been Reached
-        if (!Prebuff_flag && (sampleCount() >= (PREBUFF_PACKET_LEN * I2S_DMA_BUFF_LEN))) {
-            Prebuff_flag = 0x1;
+        if (!DAC_overrun_flag && (sampleCount() >= (PREBUFF_PACKET_LEN * I2S_DMA_BUFF_LEN))) {
+            DAC_overrun_flag = 0x1;
             timerAlarmEnable(DAC_timer);
-            Serial.println("Pre-buffering complete...starting DAC output.");
         }
 
-        // Re-enable DAC Timer once Overrun is Resolved
-        if (DAC_overrun_flag && (sampleCount() >= (PREBUFF_OVERRUN_REFRESH * I2S_DMA_BUFF_LEN))) {
-            DAC_overrun_flag = 0x0;
+        // Re-enable DAC Timer once Underrun is Resolved
+        if (DAC_underrun_flag && (sampleCount() >= (PREBUFF_OVERRUN_REFRESH * I2S_DMA_BUFF_LEN))) {
+            DAC_underrun_flag = 0x0;
             timerAlarmEnable(DAC_timer);
-            Serial.println("Pre-buffering resolving from overrun...starting DAC output.");
         }
     }
+    packet_cnt++;
 }
 
 
 // Output Filtered Sample through DAC (Occurs every 23us / sample = 44.1kHz)
 void IRAM_ATTR onDACClock() {
-    // Blink LED to Indicate Transmission
-    digitalWrite(DEBUG_PIN, !digitalRead(DEBUG_PIN));  
-
-    // Hold if Pre-Buffer is not yet Filled
-    if (!Prebuff_flag)
-        return;
-
-    uint8_t sample;
-
-    // Check if there is Data in Queue
-    if (pop_Sample(&sample)) {
-        dacWrite(Receiver_pins[0], sample);
-
-        // Blink LED to Indicate Transmission
-        digitalWrite(22, !digitalRead(22));  
-    } 
-    // Temporarily Disable DAC Timer if FIFO Buffer Becomes Full After Running
-    else if (Prebuff_flag) {
-        DAC_overrun_flag = 0x1;
-        timerAlarmDisable(DAC_timer);
-        interp_step++;
-
-        // Perform 2-step linear interpolation only
-        if (interp_step <= 2) {
-            uint8_t interpolated = last_sample + interp_step * interp_delta;
-            dacWrite(Receiver_pins[0], interpolated);
-        } else if (!isEmpty()) {
-            // Recovery: if data returns, stop interpolating
-            DAC_overrun_flag = 0x0;
-            timerAlarmEnable(DAC_timer);     // Optional if already running
-        }
-    }
+    // Toggle Flag
+    DAC_timer_flag = 0x1;
 }
 
 
 /* Initial Setup*/
 void setup(void) {
-    // LED Used for Debugging
-    pinMode(DEBUG_PIN, OUTPUT);
-    digitalWrite(DEBUG_PIN, LOW);
-    pinMode(22, OUTPUT);
-    digitalWrite(22, LOW);
-
     Serial.begin(115200);
     Serial.println("Receiver initialized.");
+    
+    // DEBUG PINS
+    pinMode(DEBUG_PIN, OUTPUT);
+    pinMode(DEBUG_PIN2, OUTPUT);
+    digitalWrite(DEBUG_PIN, LOW);
+    digitalWrite(DEBUG_PIN2, LOW);
+
+    // Setup LED Alert to Confirm Connection
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
+
+    Serial.println(WiFi.macAddress());
 
     // Check if MAC Address Matches Receiver
     if (WiFi.macAddress() == "8C:4F:00:16:9E:34") {
@@ -129,27 +111,82 @@ void setup(void) {
         Serial.println("ESP-NOW init failed!");
         return;
     }
+    esp_task_wdt_init(5, true);  // 5 second timeout, panic=true
+    esp_task_wdt_add(NULL);      // Add current task to WDT
 
     // Register Receive Function to Handle Input
     esp_now_register_recv_cb(onReceive);
+    //digitalWrite(LED_PIN, HIGH);
     Serial.println("Receiver ready for data.");
 
-    // Initialize DAC Timer (Do Not Enable until Sufficient Pre-Buffered Sample Size)
+    // Initialize MCP4921 and DAC Timer (Do Not Enable until Sufficient Pre-Buffered Sample Size)
+    setupMCP4921();
     DAC_timer = timerBegin(0, 80, true);
     timerAttachInterrupt(DAC_timer, &onDACClock, true);
     timerAlarmWrite(DAC_timer, DAC_TIMER_INTERVAL_US, true);  // ~44.1kHz
+    Serial.println("Receiver Initialization Complete... outputting Data.");
 }
 
 
 /* Main Function */
 void loop(void) {
-
-    static uint32_t underruns = 0;
-if (DAC_overrun_flag) {
-    underruns++;
-    Serial.printf("Underrun #%lu at %lu ms\n", underruns, millis());
-    delay(100);  // debounce message
-}
+    esp_task_wdt_reset();  // Feed the watchdog
 
 
+    /* ----------------------------------- */
+
+
+    if (DAC_overrun_flag) {
+        digitalWrite(DEBUG_PIN, HIGH);
+    } else {
+        digitalWrite(DEBUG_PIN, LOW);
+    }
+
+    if (DAC_underrun_flag) {
+        digitalWrite(DEBUG_PIN2, HIGH);
+    } else {
+        digitalWrite(DEBUG_PIN2, LOW);
+    }
+
+
+    /* ----------------------------------- */
+
+
+    // Handle DAC Timer ISR
+    if (DAC_timer_flag) {
+        static uint16_t sample;
+        // Check if there is Data in Queue
+        if (pop_Sample(&sample)) {
+            writeToMCP4921(sample);
+            analogWrite(LED_PIN, sample);
+        }
+        // Temporarily Stop Data Pushing if FIFO Buffer Overruns; Interpolate Lost Data
+        else if (isFull()) {
+            DAC_overrun_flag = 0x1;
+            interp_step++;
+
+            // Perform 2-step Linear Interpolation
+            if (interp_step <= 2) {
+                uint8_t interpolated = prev_output + ((interp_step * interp_delta) / 2);
+                writeToMCP4921(interpolated);
+            } else if (!isEmpty()) {
+                // Recovery: if Data Returns, Stop Interpolating
+                DAC_overrun_flag = 0x0;
+            }
+        } 
+        // Temporarily Stop DAC Timer if FIFO Buffer Underruns; Fill Larger Pre-Buffer
+        else {
+            DAC_underrun_flag = 0x1;
+            timerAlarmDisable(DAC_timer);
+        }
+
+        // Toggle DAC Timer Flag
+        DAC_timer_flag = 0x0;
+    }
+
+
+    /* ----------------------------------- */
+
+
+    
 }

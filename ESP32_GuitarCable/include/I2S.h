@@ -6,10 +6,13 @@
 #include "driver/i2s.h"
 
 /* MACROS */
-#define I2S_SAMPLE_RATE 44100
-#define I2S_DMA_BUFF_LEN 20          // Number of Samples, not Bytes
-#define PREBUFF_PACKET_LEN 5         // Number of Packets
-#define PREBUFF_OVERRUN_REFRESH 8    // Number of Packets to Reset
+// DMA HANDLERS
+#define I2S_SAMPLE_RATE 19400
+#define I2S_DMA_BUFF_LEN 8           // Number of Samples, not Bytes
+#define BYTES_READ (I2S_DMA_BUFF_LEN * sizeof(uint16_t))
+#define MAX_PENDING_PACKETS 50        // Number of Packets
+#define MAX_DMA_PACKETS 150           // Number of Packets
+
 
 /* External Variables */
 extern uint16_t DMA_ping_buff[I2S_DMA_BUFF_LEN];

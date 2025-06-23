@@ -10,7 +10,7 @@
 
 /* Functions */
 // Create Multi-Tap FIR Filter
-uint8_t apply_fir_filter(uint8_t new_sample);
+uint16_t apply_fir_filter(uint16_t new_sample);
 
 
 #endif
