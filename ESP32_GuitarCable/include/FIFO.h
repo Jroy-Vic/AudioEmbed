@@ -29,7 +29,7 @@ uint8_t push_Sample(uint16_t sample);
 uint8_t pop_Sample(uint16_t *sample);
 
 // Check how Many Samples are Pre-Buffered
-uint16_t sampleCount();
+uint32_t sampleCount();
 
 
 #endif

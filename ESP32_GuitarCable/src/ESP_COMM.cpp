@@ -10,10 +10,6 @@ extern "C" {
 /* Functions */
 // Initialize ESP-NOW Communication between MCUs
 void setupESPNow() {
-    // Setup LED Alert to Confirm Connection
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
-
     // Initialize ESP NOW Protocol for Transmitter
     WiFi.mode(WIFI_STA);
     esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_LR);   // Enable Long-Range Mode

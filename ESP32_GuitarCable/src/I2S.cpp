@@ -4,13 +4,20 @@
 
 /* External Variables */
 // Initialize DMA Buffers to Zero (Ping = Read, Pong = Send)
-uint16_t DMA_ping_buff[I2S_DMA_BUFF_LEN] = {0};
-uint16_t DMA_pong_buff[I2S_DMA_BUFF_LEN] = {0};
+uint16_t *DMA_ping_buff = nullptr;
+uint16_t *DMA_pong_buff = nullptr;
 
 
 /* Functions */
 /* Initialize I2S Driver for ADC Reading/Receiving of Guitar Signal Data */
-void setupI2S(const uint8_t Transmitter_pins[]) {
+uint8_t setupI2S(const uint8_t Transmitter_pins[]) {
+    // Check if DMA Buffers are already allocated
+    if (DMA_ping_buff == nullptr || DMA_pong_buff == nullptr) {
+        Serial.println("Failed to allocate memory for DMA buffers!");
+        Serial.println("IS2 Communication Initialization Failed.");
+        return 0;
+    }
+
     // Configure I2S Settings 
     const i2s_config_t i2s_config = {
         .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),
@@ -39,5 +46,5 @@ void setupI2S(const uint8_t Transmitter_pins[]) {
     // Allow Clock to Stabilize
     delay(50);
 
-    Serial.println("I2S Communication Initialized.");
+    return 1;
 }

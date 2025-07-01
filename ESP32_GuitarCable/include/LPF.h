@@ -6,7 +6,7 @@
 
 
 /* MACROS */
-#define FIR_TAPS 5
+#define FIR_TAPS 8
 
 /* Functions */
 // Create Multi-Tap FIR Filter
